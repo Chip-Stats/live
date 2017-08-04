@@ -1,0 +1,13 @@
+var theIcon1 = new theIcon({iconSize:[40,40],iconAnchor:[20,20]});
+L.marker([34.052,-118.244], {icon: theIcon1}).addTo(P);
+L.marker([37.442,-122.143], {icon: theIcon1}).addTo(P);
+L.marker([33.448,-112.074], {icon: theIcon1}).addTo(P);
+L.marker([32.715,-117.157], {icon: theIcon1}).addTo(P);
+L.marker([29.763,-95.363], {icon: theIcon1}).addTo(P);
+L.marker([41.85,-87.65], {icon: theIcon1}).addTo(P);
+L.marker([45.523,-122.676], {icon: theIcon1}).addTo(P);
+L.marker([43.7,-79.416], {icon: theIcon1}).addTo(P);
+L.marker([19.014,72.848], {icon: theIcon1}).addTo(P);
+L.marker([-27.468,153.028], {icon: theIcon1}).addTo(P);
+L.marker([-17.389,-66.157], {icon: theIcon1}).addTo(P);
+L.marker([49.448,11.068], {icon: theIcon1}).addTo(P);

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Satori Quickstart</title>
+    <style>
+      p {
+        margin: 10px 0px 5px 0px;
+      }
+      div#output {
+        padding: 6px;
+        width: 800px;
+        height: 500px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        font-size: small;
+        overflow-y: scroll;
+      }
+      div#output > div {
+        padding: 4px 0;
+      }
+    </style>
+    <script src="https://satori-a.akamaihd.net/satori-rtm-sdk/v1.0.2/sdk.min.js"></script>
+  </head>
+  <body>
+    <p>Output:</p>
+    <div id="output" />
+
+    <script type="text/javascript">
+var endpoint = "wss://open-data.api.satori.com";
+var appkey = "dCff96Aa9DB10D2CEc6df1E4251a7bb4";
+//var endpoint = "wss://x1kijuwn.api.satori.com" //Chip
+//var appkey = "cD78C2EFdadc28A5ab4bADEaedf2c35e" //Chip
+var channelName = "full-weather";
+var filter = 'SELECT location.coords.lat as "lat", location.coords.lon as "lon" FROM `full-weather` WHERE type = "lightning"'
+      function showText(text) {
+        var view = document.getElementById("output");
+        var record = "<div>" + text + "</div>";
+        view.innerHTML = record + view.innerHTML;
+      }
+      var client = new RTM(endpoint, appkey);
+      // Hook up to client connectivity state transitions
+      client.on("enter-connected", function () {
+        showText("Connected to Satori RTM!");
+      });
+      client.on("leave-connected", function () {
+        showText("Disconnected from Satori RTM");
+      });
+      client.on("error", function (error) {
+        var reason;
+        if (error.body) {
+          reason = error.body.error + " - " + error.body.reason;
+        } else {
+          reason = "unknown reason";
+        }
+        showText("RTM client failed: " + reason);
+      });
+      client.start();
+      // Show information about the client configuration
+      var configInfo = "RTM client config:<br />";
+      configInfo += "&nbsp;&nbsp;endpoint = '" + endpoint + "'<br />";
+      configInfo += "&nbsp;&nbsp;appkey = '" + appkey + "'<br />";
+      showText(configInfo);
+      // At this point, the client may not yet be connected to Satori RTM.
+      // The SDK internally creates a subscription object and will subscribe
+      // once the client connects.
+      var subscription = client.subscribe(channelName, RTM.SubscriptionMode.SIMPLE, {filter: filter});
+      subscription.on("enter-subscribed", function() {
+        // When subscription is established (confirmed by Satori RTM).
+        showText("Subscribed to the channel: " + channelName);
+      });
+      subscription.on("rtm/subscribe/error", function(pdu) {
+        // When a subscribe error occurs.
+        showText("Failed to subscribe: " + pdu.body.error + " - " + pdu.body.reason);
+      });
+      subscription.on("rtm/subscription/data", function(pdu) {
+        // Messages arrive in an array.
+        pdu.body.messages.forEach(function(msg) {
+          showText(JSON.stringify(msg));
+        });
+      });
+    </script>
+  </body>
+</html>

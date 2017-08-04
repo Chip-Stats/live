@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	
+	<title>Live Lightning Map</title>
+
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.1.0/dist/leaflet.js"></script>
+<script type="text/javascript" src="L.Terminator.js"></script>
+<link rel="stylesheet" href="style.css" />
+<script src="https://satori-a.akamaihd.net/satori-rtm-sdk/v1.0.2/sdk.min.js"></script>
+
+<style>
+body, html {
+    height: 100%;
+    margin: 0;
+}
+
+.bg {
+    height: 100%; width: 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+</style>
+<script>
+function startTime() {
+  var monthNames = [
+    "January", "February", "March",
+    "April", "May", "June", "July",
+    "August", "September", "October",
+    "November", "December"
+  ];
+    var today = new Date();
+      var day = today.getDate();
+  var monthIndex = today.getMonth();
+  var year = today.getFullYear();
+    var h = today.getHours();
+    var m = today.getMinutes();
+    var s = today.getSeconds();
+    m = checkTime(m);
+    s = checkTime(s);
+    document.getElementById('txt').innerHTML =
+    day + ' ' + monthNames[monthIndex] + ' ' + year+' '+h + ":" + m + ":" + s;
+    var t = setTimeout(startTime, 1000);
+}
+function checkTime(i) {
+    if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+    return i;
+}
+</script>
+	
+</head>
+<body onload="startTime()">
+<div id="mapid" class="bg"></div>
+<script>
+	var mymap = L.map('mapid'
+				,{//zoomSnap: 0.5, 
+                                  zoomControl:false}
+				).setView([40, -95], 4);
+
+var T1 =L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+                , {
+                attribution:'<a href="https://www.satori.com/channels/full-weather">Data<a>',
+                maxZoom: 18,
+                minZoom: 2
+	})
+
+T1.addTo(mymap);
+
+var T2 =L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/toner-hybrid/{z}/{x}/{y}.{ext}', {
+	//attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+	subdomains: 'abcd',
+	minZoom: 2,
+	maxZoom: 18,
+	ext: 'png'
+	})
+
+var command = L.control({position: 'topleft'});
+
+command.onAdd = function (mymap) {
+    var div = L.DomUtil.create('div', 'command');
+    div.innerHTML = '<font color="white"><div id="txt"></div></font><form><input id="command" type="checkbox"/><font color="white">Show Labels</font></form>'; 
+    return div;
+};
+
+command.addTo(mymap);
+
+function handleCommand() {
+if(this.checked){addT2()} else {removeT2()}
+}
+
+function addT2() {
+T2.addTo(mymap);
+}
+
+function removeT2() {
+mymap.removeLayer(T2);
+}
+document.getElementById ("command").addEventListener ("click", handleCommand, false);
+
+
+
+</script>
+<!-- <script src="livePoints.js"></script> -->
+<script>
+
+var endpoint = "wss://open-data.api.satori.com";
+var appkey = "dCff96Aa9DB10D2CEc6df1E4251a7bb4";
+//var endpoint = "wss://x1kijuwn.api.satori.com" //Chip
+//var appkey = "cD78C2EFdadc28A5ab4bADEaedf2c35e" //Chip
+var channelName = "full-weather";
+var filter = 'SELECT location.coords.lat as "lat", location.coords.lon as "lon" FROM `full-weather` WHERE type = "lightning"'
+var client = new RTM(endpoint, appkey);
+client.start();
+var subscription = client.subscribe(channelName, RTM.SubscriptionMode.SIMPLE, {filter: filter});
+
+
+var theIcon = L.icon({iconUrl:'http://findicons.com/files/icons/478/weather/128/lightning.png', iconSize: [40, 40], iconAnchor: [20, 20]});
+var P = [];
+var i = 0;
+
+
+subscription.on("rtm/subscription/data", function(pdu) {
+        // Messages arrive in an array.
+        pdu.body.messages.forEach(function(msg) {
+          addData(P[i],msg.lat,msg.lon);
+i++;
+        });
+      });
+
+
+function addData(P,lat,lon){
+P=L.marker([lat,lon], {icon: theIcon});
+P.addTo(mymap);
+
+setTimeout(function() { P.removeFrom(mymap); }, 3000);
+}
+
+
+//window['d0']=L.layerGroup();
+
+//setInterval(function(){addPoints()}, 1000);
+
+//function addPoints(){
+//window['d'+(i-1)].clearLayers();
+//var lat = Math.random()*180-90;
+//var lon = Math.random()*360-180;
+//window['d'+i] = L.layerGroup();
+//L.marker([lat,lon], {icon: theIcon}).addTo(window['d'+i]);
+//window['d'+i].addTo(mymap);
+//i++;
+//}
+
+function wait(ms){
+   var start = new Date().getTime();
+   var end = start;
+   while(end < start + ms) {
+     end = new Date().getTime();
+  }
+}
+
+var t = L.terminator();
+t.addTo(mymap);
+setInterval(function(){updateTerminator(t)}, 5000);
+function updateTerminator(t) {
+  var t2 = L.terminator();
+  t.setLatLngs(t2.getLatLngs());
+  t.redraw();
+}
+</script>
+
+
+</body>
+</html>
