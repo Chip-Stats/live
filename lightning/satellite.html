@@ -103,6 +103,12 @@ mymap.removeLayer(T2);
 }
 document.getElementById ("command").addEventListener ("click", handleCommand, false);
 
+
+
+</script>
+<!-- <script src="livePoints.js"></script> -->
+<script>
+
 var endpoint = "wss://open-data.api.satori.com";
 var appkey = "dCff96Aa9DB10D2CEc6df1E4251a7bb4";
 //var endpoint = "wss://x1kijuwn.api.satori.com" //Chip
@@ -136,6 +142,20 @@ setTimeout(function() { P.removeFrom(mymap); }, 3000);
 }
 
 
+//window['d0']=L.layerGroup();
+
+//setInterval(function(){addPoints()}, 1000);
+
+//function addPoints(){
+//window['d'+(i-1)].clearLayers();
+//var lat = Math.random()*180-90;
+//var lon = Math.random()*360-180;
+//window['d'+i] = L.layerGroup();
+//L.marker([lat,lon], {icon: theIcon}).addTo(window['d'+i]);
+//window['d'+i].addTo(mymap);
+//i++;
+//}
+
 function wait(ms){
    var start = new Date().getTime();
    var end = start;
@@ -146,7 +166,7 @@ function wait(ms){
 
 var t = L.terminator();
 t.addTo(mymap);
-setInterval(function(){updateTerminator(t)}, 6000);
+setInterval(function(){updateTerminator(t)}, 5000);
 function updateTerminator(t) {
   var t2 = L.terminator();
   t.setLatLngs(t2.getLatLngs());
